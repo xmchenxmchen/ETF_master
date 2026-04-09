@@ -63,6 +63,10 @@ def main():
 
 
     args = parser.parse_args() 
+    # 修正：強制指定 v2 目錄下的 watchlist.txt
+    watchlist_path = os.path.join(current_dir, "watchlist.txt")
+    engine = ETFEngine(watchlist_file=watchlist_path)
+
     engine = ETFEngine()
 
     # 1. 統一解析代碼

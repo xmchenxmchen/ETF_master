@@ -1,9 +1,12 @@
 import json
 import os
 from datetime import datetime
+# v2/core/storage.py 頂端
+import os
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 class HistoryManager:
-    FILE_PATH = "data/history.json"
+    FILE_PATH = os.path.join(BASE_DIR, "data", "history.json")
     MAX_RECORDS_PER_TICKER = 20  # 限制每檔標的只留最近 20 筆
 
     @classmethod
