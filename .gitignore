@@ -1,0 +1,10 @@
+# Python 暫存檔
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 報告暫存檔
+report.txt
+
+# 作業系統暫存檔
+.DS_Store

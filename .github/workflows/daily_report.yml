@@ -35,9 +35,19 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
+          
+          # 1. 僅暫存 history.json，避免把 report.txt 存入
           git add v2/data/history.json
-          git commit -m "Auto-update ETF history [skip ci]" || echo "No changes to commit"
-          git push
+          
+          # 2. 檢查是否有變動，若有才提交
+          if ! git diff --cached --exit-code; then
+            git commit -m "Auto-update ETF history [skip ci]"
+            # 3. 使用 rebase 拉取遠端最新變動，解決衝突
+            git pull --rebase origin main
+            git push origin main
+          else
+            echo "No changes in history.json, skipping commit."
+          fi
 
       - name: Send Discord Notification
         env:
