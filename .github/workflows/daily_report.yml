@@ -4,7 +4,7 @@ on:
   schedule:
     # 每天台灣時間早上 9 點執行 (UTC 01:00)
     - cron: '0 1'
-  workflow_dispatch: # 支援手動觸發測試
+  workflow_dispatch: 
 
 jobs:
   build-and-run:
@@ -23,12 +23,13 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          pip install -r v2/requirements.txt  # 指向你的依賴檔
+          # 根據專案結構安裝依賴
+          pip install -r v2/requirements.txt
 
       - name: Run ETF Analysis
+        id: run-analysis
         run: |
-          # 執行 pd 指令並讀取 watchlist
-          # 加上 ``` 使 Discord 顯示為固定寬度字體（表格才不會亂）
+          # 加上程式碼區塊符號 ``` 讓 Discord 以固定寬度字體顯示表格
           echo '```' > report.txt
           python v2/main.py pd --tk watchlist >> report.txt
           echo '```' >> report.txt
@@ -38,33 +39,23 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add v2/data/history.json  # 更新歷史紀錄
+          # 更新 v2/data/history.json 的歷史紀錄
+          git add v2/data/history.json
           git commit -m "Auto-update ETF history [skip ci]" || echo "No changes to commit"
           git push
 
       - name: Send Discord Notification
         env:
+          # 將所有環境變數集中在一個 env 區塊內
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: |
-          # 讀取 report.txt 內容並封裝成 Discord 要求的 JSON 格式
-          # jq 工具可以用來安全地處理字串轉 JSON，或是簡單用 python 處理
-          REPORT=$(cat report.txt)
-          python3 -c "import os, requests, json; \
-                      url = os.getenv('DISCORD_WEBHOOK'); \
-                      content = os.getenv('MSG'); \
-                      requests.post(url, json={'content': content})" 
-        env:
-          MSG: ${{ steps.run-analysis.outputs.report }} # 這裡建議直接讀檔案發送
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          
-      # 上面那個 curl 寫法比較簡單，我們改用這個更穩定的版本：
-      - name: Final Discord Post
-        run: |
-          # 利用 python 處理換行符號問題，確保發送成功
           python3 - <<EOF
           import os, requests
-          with open('report.txt', 'r') as f:
-              content = f.read()
-          payload = {"content": content}
-          requests.post("${{ secrets.DISCORD_WEBHOOK }}", json=payload)
+          # 檢查報告檔案是否存在並發送至 Discord
+          if os.path.exists('report.txt'):
+              with open('report.txt', 'r') as f:
+                  content = f.read()
+              webhook_url = os.getenv('DISCORD_WEBHOOK')
+              if webhook_url:
+                  requests.post(webhook_url, json={"content": content})
           EOF
