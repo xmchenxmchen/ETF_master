@@ -31,7 +31,7 @@ jobs:
         run: |
           # 報告路徑也要調整，因為現在在 v2 裡面，所以寫到上一層 (../)
           echo '```' > ../report.txt
-          python main.py pd --tk 0050.tw >> ../report.txt
+          python main.py pd --tk watchlist >> ../report.txt
           echo '```' >> ../report.txt
 
       - name: Commit History Changes
