@@ -3,8 +3,7 @@ name: ETF Daily Report (Discord)
 on:
   schedule:
     # 每天台灣時間早上 9 點執行 (UTC 01:00)
-    - cron: '0 1'
-  workflow_dispatch: 
+    - cron: '0 1 * * *: 
 
 jobs:
   build-and-run:
