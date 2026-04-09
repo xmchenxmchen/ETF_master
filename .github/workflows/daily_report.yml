@@ -1,9 +1,9 @@
-name: ETF Daily Report (Discord)
+name: ETF Daily Report
 
 on:
   schedule:
-    # 每天台灣時間早上 9 點執行 (UTC 01:00)
-    - cron: '0 1 * * *: 
+    - cron: "0 1 * * *"
+  workflow_dispatch: {}
 
 jobs:
   build-and-run:
@@ -18,39 +18,31 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: "3.10"
 
       - name: Install Dependencies
-        run: |
-          # 根據專案結構安裝依賴
-          pip install -r v2/requirements.txt
+        run: pip install -r v2/requirements.txt
 
       - name: Run ETF Analysis
-        id: run-analysis
         run: |
-          # 加上程式碼區塊符號 ``` 讓 Discord 以固定寬度字體顯示表格
           echo '```' > report.txt
           python v2/main.py pd --tk watchlist >> report.txt
           echo '```' >> report.txt
-          cat report.txt
 
       - name: Commit History Changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          # 更新 v2/data/history.json 的歷史紀錄
           git add v2/data/history.json
           git commit -m "Auto-update ETF history [skip ci]" || echo "No changes to commit"
           git push
 
       - name: Send Discord Notification
         env:
-          # 將所有環境變數集中在一個 env 區塊內
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: |
           python3 - <<EOF
           import os, requests
-          # 檢查報告檔案是否存在並發送至 Discord
           if os.path.exists('report.txt'):
               with open('report.txt', 'r') as f:
                   content = f.read()
