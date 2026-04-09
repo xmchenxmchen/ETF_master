@@ -26,10 +26,13 @@ jobs:
         run: pip install -r v2/requirements.txt
 
       - name: Run ETF Analysis
+              # 加上這行，指定在 v2 目錄下執行
+        working-directory: ./v2 
         run: |
-          echo '```' > report.txt
-          python v2/main.py pd --tk watchlist >> report.txt
-          echo '```' >> report.txt
+          # 報告路徑也要調整，因為現在在 v2 裡面，所以寫到上一層 (../)
+          echo '```' > ../report.txt
+          python main.py pd --tk 0050.tw >> ../report.txt
+          echo '```' >> ../report.txt
 
       - name: Commit History Changes
         run: |
