@@ -67,8 +67,6 @@ def main():
     watchlist_path = os.path.join(current_dir, "watchlist.txt")
     engine = ETFEngine(watchlist_file=watchlist_path)
 
-    engine = ETFEngine()
-
     # 1. 統一解析代碼
     ticker_list = engine.prepare_tickers(args.tk or [])
 
