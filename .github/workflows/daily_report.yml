@@ -35,13 +35,7 @@ jobs:
           echo "--- Price Analysis ---" >> ../report.txt
           python main.py pd --tk watchlist >> ../report.txt
           
-          # 3. 換行並加上間隔 (讓報告美觀)
-          echo -e "\n\n--- Volume Analysis ---" >> ../report.txt
-          
-          # 4. 執行第二個指令 (Volume Analysis)
-          python main.py vol --tk watchlist >> ../report.txt
-          
-          # 5. 寫入 Markdown 結尾
+          # 3. 寫入 Markdown 結尾
           echo '```' >> ../report.txt
 
       - name: Commit History Changes
