@@ -11,15 +11,17 @@
 # ==========================================
 
 # --- 核心持倉 (Core Holdings) ---
-TSLA
-NVDA
+2337.TW
+009805.TW
+00885.TW
+00910.TW
 
-# --- 台股標的 (Taiwan Market) ---
+# --- 台股ETF標的 (Taiwan Market) ---
 0050.TW
-009816.TW
-0056.TW
 00878.TW
+00929.TW
+00934.TW
+00991A.TW
+0056.TW
 
 # --- 指數與觀察 (Watchlist) ---
-^TWII
-^GSPC

@@ -2,7 +2,7 @@ name: ETF Daily Report
 
 on:
   schedule:
-    - cron: "0 1 * * *"
+    - cron: "30 1,4 * * *"
   workflow_dispatch: {}
 
 jobs:
@@ -26,12 +26,22 @@ jobs:
         run: pip install -r v2/requirements.txt
 
       - name: Run ETF Analysis
-              # 加上這行，指定在 v2 目錄下執行
         working-directory: ./v2 
         run: |
-          # 報告路徑也要調整，因為現在在 v2 裡面，所以寫到上一層 (../)
+          # 1. 初始化報告檔案並寫入 Markdown 開頭
           echo '```' > ../report.txt
+          
+          # 2. 執行第一個指令 (Price Analysis)
+          echo "--- Price Analysis ---" >> ../report.txt
           python main.py pd --tk watchlist >> ../report.txt
+          
+          # 3. 換行並加上間隔 (讓報告美觀)
+          echo -e "\n\n--- Volume Analysis ---" >> ../report.txt
+          
+          # 4. 執行第二個指令 (Volume Analysis)
+          python main.py vol --tk watchlist >> ../report.txt
+          
+          # 5. 寫入 Markdown 結尾
           echo '```' >> ../report.txt
 
       - name: Commit History Changes
