@@ -257,8 +257,14 @@ async function loadHistory(ticker) {
 
   const container = document.getElementById('chart-container');
 
-  const res = await fetch(`/api/history/${ticker}`);
-  const records = await res.json();
+  const sd = getStaticData();
+  let records;
+  if (sd) {
+    records = (sd.history[ticker.toUpperCase()] || []);
+  } else {
+    const res = await fetch(`/api/history/${ticker}`);
+    records = await res.json();
+  }
 
   if (!records.length) {
     container.innerHTML = '<div class="no-history">此標的尚無歷史紀錄</div>';
@@ -315,7 +321,24 @@ async function loadHistory(ticker) {
   });
 }
 
-loadWatchlist();
+function getStaticData() {
+  const el = document.getElementById('__sd');
+  return el ? JSON.parse(el.textContent) : null;
+}
+
+function init() {
+  const sd = getStaticData();
+  if (sd) {
+    renderTable(sd.watchlist);
+    document.getElementById('updated-at').textContent = `資料截至 ${sd.generated_at}`;
+    document.getElementById('status').textContent = `共 ${sd.watchlist.length} 檔標的（靜態快照）`;
+    document.getElementById('refresh-btn').style.display = 'none';
+  } else {
+    loadWatchlist();
+  }
+}
+
+init();
 </script>
 </body>
 </html>

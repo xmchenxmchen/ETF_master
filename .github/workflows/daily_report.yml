@@ -12,11 +12,9 @@ jobs:
       contents: write
 
     steps:
-      # 1. 升級至 v4
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # 2. 升級至 v5
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -26,34 +24,24 @@ jobs:
         run: pip install -r v2/requirements.txt
 
       - name: Run ETF Analysis
-        working-directory: ./v2 
-        run: |
-          # 1. 初始化報告檔案並寫入 Markdown 開頭
-          echo '```' > ../report.txt
-          
-          # 2. 執行第一個指令 (Price Analysis)
-          echo "--- Price Analysis ---" >> ../report.txt
-          python main.py pd --tk watchlist >> ../report.txt
-          
-          # 3. 寫入 Markdown 結尾
-          echo '```' >> ../report.txt
+        working-directory: ./v2
+        run: python main.py pd --tk watchlist
 
-      - name: Commit History Changes
+      - name: Generate Static Dashboard
+        working-directory: ./v2
+        run: python generate_snapshot.py
+
+      - name: Commit Changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          
-          # 1. 僅暫存 history.json，避免把 report.txt 存入
-          git add v2/data/history.json
-          
-          # 2. 檢查是否有變動，若有才提交
+          git add v2/data/history.json docs/
           if ! git diff --cached --exit-code; then
-            git commit -m "Auto-update ETF history [skip ci]"
-            # 3. 使用 rebase 拉取遠端最新變動，解決衝突
+            git commit -m "Auto-update ETF snapshot [skip ci]"
             git pull --rebase origin main
             git push origin main
           else
-            echo "No changes in history.json, skipping commit."
+            echo "No changes, skipping commit."
           fi
 
       - name: Send Discord Notification
@@ -61,11 +49,37 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: |
           python3 - <<EOF
-          import os, requests
-          if os.path.exists('report.txt'):
-              with open('report.txt', 'r') as f:
-                  content = f.read()
-              webhook_url = os.getenv('DISCORD_WEBHOOK')
-              if webhook_url:
-                  requests.post(webhook_url, json={"content": content})
+          import os, json, requests
+
+          webhook_url = os.getenv('DISCORD_WEBHOOK')
+          if not webhook_url:
+              print("No webhook configured")
+              exit(0)
+
+          summary_path = 'docs/summary.json'
+          if not os.path.exists(summary_path):
+              requests.post(webhook_url, json={"content": "ETF Daily Report 完成（無摘要資料）"})
+              exit(0)
+
+          with open(summary_path) as f:
+              s = json.load(f)
+
+          lines = [
+              f"**ETF Daily Report** — {s['generated_at']}",
+              f"{s['ok']}/{s['total']} 標的更新成功",
+          ]
+
+          td = s.get('top_discount')
+          if td:
+              lines.append(f"折價最大：{td['ticker']} ({td['pd']:+.2f}%)")
+          tp = s.get('top_premium')
+          if tp:
+              lines.append(f"溢價最大：{tp['ticker']} ({tp['pd']:+.2f}%)")
+          tv = s.get('top_vol')
+          if tv:
+              lines.append(f"爆量冠軍：{tv['ticker']} ({tv['vol_ratio']:.1f}x)")
+
+          lines += ["", "https://xmchenxmchen.github.io/ETF_master/"]
+
+          requests.post(webhook_url, json={"content": "\n".join(lines)})
           EOF
