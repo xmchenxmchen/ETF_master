@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ETF-Master Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      min-height: 100vh;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      border-bottom: 1px solid #1e2535;
+      background: #131720;
+    }
+
+    header h1 { font-size: 18px; font-weight: 600; color: #7dd3fc; letter-spacing: 0.5px; }
+    header span { font-size: 12px; color: #64748b; }
+
+    #refresh-btn {
+      background: #1e40af;
+      color: #fff;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background 0.2s;
+    }
+    #refresh-btn:hover { background: #2563eb; }
+    #refresh-btn:disabled { background: #334155; cursor: not-allowed; }
+
+    main { padding: 20px 24px; }
+
+    #status {
+      font-size: 13px;
+      color: #94a3b8;
+      margin-bottom: 14px;
+      min-height: 20px;
+    }
+
+    /* Table */
+    .table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid #1e2535; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+
+    thead { background: #131720; }
+    thead th {
+      padding: 10px 14px;
+      text-align: right;
+      font-weight: 500;
+      color: #64748b;
+      white-space: nowrap;
+    }
+    thead th:first-child { text-align: left; }
+
+    tbody tr {
+      border-top: 1px solid #1e2535;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    tbody tr:hover { background: #1a2030; }
+    tbody tr.selected { background: #1e2d45; }
+
+    td {
+      padding: 11px 14px;
+      text-align: right;
+      white-space: nowrap;
+    }
+    td:first-child { text-align: left; }
+
+    .ticker { font-weight: 600; color: #7dd3fc; }
+    .name   { color: #94a3b8; font-size: 12px; }
+
+    .up   { color: #4ade80; }
+    .down { color: #f87171; }
+    .neu  { color: #94a3b8; }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .badge-green  { background: #14532d; color: #4ade80; }
+    .badge-red    { background: #450a0a; color: #f87171; }
+    .badge-yellow { background: #422006; color: #fb923c; }
+    .badge-gray   { background: #1e293b; color: #94a3b8; }
+
+    .error-row td { color: #f87171; font-style: italic; }
+
+    /* Chart section */
+    #chart-section {
+      margin-top: 24px;
+      background: #131720;
+      border: 1px solid #1e2535;
+      border-radius: 10px;
+      padding: 18px 20px;
+      display: none;
+    }
+
+    #chart-section h2 {
+      font-size: 14px;
+      color: #94a3b8;
+      margin-bottom: 14px;
+    }
+    #chart-section h2 span { color: #7dd3fc; font-weight: 600; }
+
+    #chart-container { position: relative; height: 220px; }
+
+    .no-history {
+      text-align: center;
+      color: #475569;
+      padding: 40px 0;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>ETF-Master Dashboard</h1>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <span id="updated-at"></span>
+    <button id="refresh-btn" onclick="loadWatchlist()">重新整理</button>
+  </div>
+</header>
+
+<main>
+  <div id="status">載入中...</div>
+
+  <div class="table-wrap">
+    <table id="etf-table">
+      <thead>
+        <tr>
+          <th>代碼 / 名稱</th>
+          <th>市價</th>
+          <th>淨值</th>
+          <th>折溢價</th>
+          <th>殖利率</th>
+          <th>量能比</th>
+        </tr>
+      </thead>
+      <tbody id="etf-body"></tbody>
+    </table>
+  </div>
+
+  <div id="chart-section">
+    <h2>歷史紀錄 — <span id="chart-ticker"></span></h2>
+    <div id="chart-container">
+      <canvas id="history-chart"></canvas>
+    </div>
+  </div>
+</main>
+
+<script>
+let chartInstance = null;
+let selectedTicker = null;
+
+function pdBadge(pd) {
+  if (pd === null || pd === undefined) return '<span class="badge badge-gray">N/A</span>';
+  const sign = pd >= 0 ? '+' : '';
+  const cls = pd < -0.5 ? 'badge-green' : pd > 0.5 ? 'badge-red' : 'badge-gray';
+  return `<span class="badge ${cls}">${sign}${pd.toFixed(2)}%</span>`;
+}
+
+function volBadge(ratio) {
+  if (!ratio && ratio !== 0) return '<span class="badge badge-gray">N/A</span>';
+  const cls = ratio > 2 ? 'badge-red' : ratio < 0.7 ? 'badge-gray' : 'badge-green';
+  return `<span class="badge ${cls}">${ratio.toFixed(2)}x</span>`;
+}
+
+function fmt(val, suffix = '', digits = 2) {
+  if (val === null || val === undefined) return '<span class="neu">—</span>';
+  return val.toFixed(digits) + suffix;
+}
+
+async function loadWatchlist() {
+  const btn = document.getElementById('refresh-btn');
+  btn.disabled = true;
+  document.getElementById('status').textContent = '正在抓取資料，請稍候...';
+
+  try {
+    const res = await fetch('/api/watchlist');
+    const data = await res.json();
+    renderTable(data);
+
+    const now = new Date().toLocaleTimeString('zh-TW');
+    document.getElementById('updated-at').textContent = `更新於 ${now}`;
+    document.getElementById('status').textContent = `共 ${data.length} 檔標的`;
+
+    // re-select previously selected ticker
+    if (selectedTicker) {
+      const row = document.querySelector(`tr[data-ticker="${selectedTicker}"]`);
+      if (row) { row.classList.add('selected'); loadHistory(selectedTicker); }
+    }
+  } catch (e) {
+    document.getElementById('status').textContent = '載入失敗：' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function renderTable(data) {
+  const tbody = document.getElementById('etf-body');
+  tbody.innerHTML = '';
+
+  data.forEach(d => {
+    const tr = document.createElement('tr');
+    tr.dataset.ticker = d.ticker;
+
+    if (d.error) {
+      tr.className = 'error-row';
+      tr.innerHTML = `<td class="ticker">${d.ticker}</td><td colspan="5">${d.error}</td>`;
+    } else {
+      const yieldStr = d.yield !== null && d.yield !== undefined
+        ? `<span class="${d.yield >= 3 ? 'up' : 'neu'}">${d.yield.toFixed(2)}%</span>`
+        : '<span class="neu">—</span>';
+
+      tr.innerHTML = `
+        <td><div class="ticker">${d.ticker}</div><div class="name">${d.name}</div></td>
+        <td>${fmt(d.price)} <small class="neu">${d.currency}</small></td>
+        <td>${fmt(d.nav)}</td>
+        <td>${pdBadge(d.pd)}</td>
+        <td>${yieldStr}</td>
+        <td>${volBadge(d.vol_ratio)}</td>
+      `;
+      tr.addEventListener('click', () => selectRow(tr, d.ticker));
+    }
+
+    tbody.appendChild(tr);
+  });
+}
+
+function selectRow(tr, ticker) {
+  document.querySelectorAll('tbody tr').forEach(r => r.classList.remove('selected'));
+  tr.classList.add('selected');
+  selectedTicker = ticker;
+  loadHistory(ticker);
+}
+
+async function loadHistory(ticker) {
+  const section = document.getElementById('chart-section');
+  section.style.display = 'block';
+  document.getElementById('chart-ticker').textContent = ticker;
+
+  const container = document.getElementById('chart-container');
+
+  const res = await fetch(`/api/history/${ticker}`);
+  const records = await res.json();
+
+  if (!records.length) {
+    container.innerHTML = '<div class="no-history">此標的尚無歷史紀錄</div>';
+    return;
+  }
+
+  container.innerHTML = '<canvas id="history-chart"></canvas>';
+
+  const priceRecords = records.filter(r => r.price).reverse();
+  const labels = priceRecords.map(r => r.timestamp);
+  const prices = priceRecords.map(r => r.price);
+
+  if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+
+  const ctx = document.getElementById('history-chart').getContext('2d');
+  chartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: '市價',
+        data: prices,
+        borderColor: '#7dd3fc',
+        backgroundColor: 'rgba(125,211,252,0.08)',
+        borderWidth: 2,
+        pointRadius: 3,
+        pointBackgroundColor: '#7dd3fc',
+        tension: 0.3,
+        fill: true,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` 市價: ${ctx.parsed.y.toFixed(2)}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: '#475569', maxTicksLimit: 8, maxRotation: 0 },
+          grid: { color: '#1e2535' }
+        },
+        y: {
+          ticks: { color: '#475569' },
+          grid: { color: '#1e2535' }
+        }
+      }
+    }
+  });
+}
+
+loadWatchlist();
+</script>
+</body>
+</html>
