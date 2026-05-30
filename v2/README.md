@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # ETF-Master: 跨市場數據分析工具 (v1.0 & v2.0)
 
 本專案是一個專為投資者設計的輕量級 CLI 工具，旨在統一台股（.TW）與美股 ETF 的數據存取介面，提供即時的折溢價診斷與成交量分析。
@@ -117,7 +116,33 @@ python main.py pd --tk watchlist
 * **v3.0 規劃**：
     1. **非同步 IO**：引入 `aiohttp` 實現多標的同時併發抓取。
     2. **SQLite 遷移**：當數據量達到規模後，將 JSON 遷移至 SQLite 以提升查詢效率與數據關聯性。
-=======
-# ETF_master
-ETF-Master v2.0: A unified CLI tool for cross-market ETF analysis (TW/US). Features real-time premium/discount diagnosis, volume monitoring, and automated dividend tracking with local history persistence.
->>>>>>> 9acec20f7724e3a256bd6013b1a655f518171493
+
+---
+
+## 8. Web Dashboard
+
+v2.0 附帶一個輕量 Flask 儀表板，在瀏覽器中呈現 watchlist 的即時資料與歷史走勢圖。
+
+### 啟動方式
+
+```bash
+cd v2/
+pip install -r requirements.txt
+python web_app.py
+```
+
+啟動後開啟瀏覽器前往 `http://localhost:5001`。
+
+### 功能
+
+- **Watchlist 總覽表**：自動讀取 `watchlist.txt`，顯示每檔標的的市價、淨值、折溢價（色碼 badge）、殖利率、量能比
+- **歷史走勢圖**：點擊任一列，下方顯示該標的的本地歷史價格折線圖（資料來源：`data/history.json`）
+- **重新整理**：右上角按鈕重新向 yfinance 抓取即時資料（約 10–20 秒）
+
+### API 端點
+
+| 路由 | 說明 |
+| :--- | :--- |
+| `GET /` | 回傳 Dashboard HTML |
+| `GET /api/watchlist` | 回傳 watchlist 所有標的的即時資料（JSON） |
+| `GET /api/history/<ticker>` | 回傳指定標的的本地歷史紀錄（JSON） |
