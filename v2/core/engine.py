@@ -135,9 +135,8 @@ class ETFEngine:
 
                 ETFRenderer.render_dividends(symbol, div_history)
 
-                # 修正：使用點符號屬性賦值，屬性名應為 tr_annual_yield
                 if div_history:
-                    basic_data.tr_annual_yield = div_history[0]['amount']
+                    basic_data.last_div_amount = div_history[0]['amount']
                 
                 # 儲存紀錄
                 HistoryManager.save_record([basic_data], "div")

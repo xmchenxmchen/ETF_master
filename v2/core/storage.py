@@ -1,8 +1,7 @@
 import json
 import os
 from datetime import datetime
-# v2/core/storage.py 頂端
-import os
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 class HistoryManager:
@@ -12,8 +11,9 @@ class HistoryManager:
     @classmethod
     def save_record(cls, data_list: list, cmd_type: str):
         """將執行結果存入快取"""
-        if not os.path.exists("data"):
-            os.makedirs("data")
+        data_dir = os.path.dirname(cls.FILE_PATH)
+        if not os.path.exists(data_dir):
+            os.makedirs(data_dir)
 
         history = cls._load_all()
         now = datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -27,7 +27,7 @@ class HistoryManager:
                 # 不管現在是什麼指令，只要 data 裡有值就存下來
                 "pd_rate": getattr(data, 'premium_discount', None),
                 "vol_ratio": getattr(data, 'volume_ratio', None),
-                "yield": getattr(data, 'tr_annual_yield', None)
+                "yield": getattr(data, 'last_div_amount', None) if cmd_type == "div" else getattr(data, 'tr_annual_yield', None)
             }
             
             if ticker not in history:

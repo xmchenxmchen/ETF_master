@@ -31,6 +31,8 @@ class ETFRenderer:
             elif t == "info":
                 val = r.get('yield')
                 detail = f"殖利率: {val:>7.2f}%" if val is not None else "殖利率:    N/A"
+            else:
+                detail = "未知類型"
 
             print(f"{r['timestamp']:<18} | {t:<6} | {price:>10.2f} | {detail}")
                 

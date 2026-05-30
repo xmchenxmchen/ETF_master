@@ -20,10 +20,11 @@ class ETFData:
     # 核心指標 (設為 Optional 並給予 None 預設值)
     # aum: Optional[float] = None
     # expense_ratio: Optional[float] = None 
-    tr_annual_yield: Optional[float] = None               
-    nav: Optional[float] = None           
-    latest_volume: Optional[float] = None    
-    avg_volume_10d: Optional[float] = None  
+    tr_annual_yield: Optional[float] = None
+    nav: Optional[float] = None
+    latest_volume: Optional[float] = None
+    avg_volume_10d: Optional[float] = None
+    last_div_amount: Optional[float] = None
     
     # 持股與時間
     # top_holdings: List[Holding] = field(default_factory=list)

@@ -10,8 +10,8 @@ class DataValidator:
         """
         if not data.price or data.price <= 0:
             raise ValueError(f"無法獲取標的 [{data.ticker}] 的有效市場價格。")
-        if not data.tr_annual_yield or data.tr_annual_yield < 0:
-                    data.tr_annual_yield = 0.0
+        if data.tr_annual_yield is None or data.tr_annual_yield < 0:
+            data.tr_annual_yield = 0.0
         return True
 
     @staticmethod
