@@ -2,6 +2,7 @@ import yfinance as yf
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 from core.models import ETFData
+from core.retry import TickerNotFoundError, call_with_retry
 
 class Fetcher:
     def __init__(self, ticker_symbol: str):
@@ -30,7 +31,9 @@ class Fetcher:
         
         final_price = info_price or hist_price
         if final_price is None:
-            raise ValueError(f"找不到標的 '{self.ticker_symbol}'，或該時段無交易價格，請檢查代碼。")
+            # 永久性錯誤：重試也救不回來，明確標記以便上層跳過重試。
+            raise TickerNotFoundError(
+                f"找不到標的 '{self.ticker_symbol}'，或該時段無交易價格，請檢查代碼。")
         final_price = float(final_price)
 
         # 3. 成交量計算 (防彈處理：避免指數型標的回傳 None)
@@ -86,19 +89,23 @@ class Fetcher:
     
 
     @classmethod
-    def fetch_many(cls, symbols: list, max_workers: int = 8):
+    def fetch_many(cls, symbols: list, max_workers: int = 6, max_retries: int = 2):
         """併發抓取多檔標的。
 
         回傳 list[(symbol, result)]，順序與輸入一致；result 為 ETFData，
         若該檔抓取失敗則為對應的 Exception。呼叫端負責決定如何處理錯誤，
         維持「單一失敗不中斷全域」的非阻斷式 UX。
+
+        - 每檔透過 call_with_retry 對「暫時性錯誤（限流/逾時）」自動退避重試；
+          「永久性錯誤（代碼不存在）」則立即放棄、不浪費時間。
+        - max_workers 預設保守設為 6，降低同時併發對 yfinance 造成的限流風險。
         """
         if not symbols:
             return []
 
         def _one(sym):
             try:
-                return sym, cls(sym).fetch()
+                return sym, call_with_retry(cls(sym).fetch, max_retries=max_retries)
             except Exception as e:  # noqa: BLE001 — 交由呼叫端分類處理
                 return sym, e
 
