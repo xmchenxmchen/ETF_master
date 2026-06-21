@@ -133,7 +133,7 @@
   <h1>ETF-Master Dashboard</h1>
   <div style="display:flex;align-items:center;gap:12px;">
     <span id="updated-at"></span>
-    <button id="refresh-btn" onclick="loadWatchlist()">重新整理</button>
+    <button id="refresh-btn" onclick="loadWatchlist(true)">重新整理</button>
   </div>
 </header>
 
@@ -186,18 +186,21 @@ function fmt(val, suffix = '', digits = 2) {
   return val.toFixed(digits) + suffix;
 }
 
-async function loadWatchlist() {
+async function loadWatchlist(forceRefresh = false) {
   const btn = document.getElementById('refresh-btn');
   btn.disabled = true;
   document.getElementById('status').textContent = '正在抓取資料，請稍候...';
 
   try {
-    const res = await fetch('/api/watchlist');
-    const data = await res.json();
+    const url = forceRefresh ? '/api/watchlist?refresh=1' : '/api/watchlist';
+    const res = await fetch(url);
+    const payload = await res.json();
+    const data = payload.items;
     renderTable(data);
 
     const now = new Date().toLocaleTimeString('zh-TW');
-    document.getElementById('updated-at').textContent = `更新於 ${now}`;
+    const tag = payload.cached ? '（快取）' : '';
+    document.getElementById('updated-at').textContent = `更新於 ${now}${tag}`;
     document.getElementById('status').textContent = `共 ${data.length} 檔標的`;
 
     // re-select previously selected ticker

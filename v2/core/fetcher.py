@@ -1,4 +1,5 @@
 import yfinance as yf
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 from core.models import ETFData
 
@@ -6,6 +7,16 @@ class Fetcher:
     def __init__(self, ticker_symbol: str):
         self.ticker_symbol = ticker_symbol.upper()
         self.ticker = yf.Ticker(self.ticker_symbol)
+        # 配息資料快取：同一個 Fetcher 物件上，dividends 只向 yfinance 抓一次，
+        # 供 fetch() 的 Smart Yield 計算與 fetch_dividends() 共用，避免重複 HTTP 請求。
+        self._dividends_cache = None
+
+    @property
+    def dividends(self):
+        """惰性載入並快取該標的的配息 Series。"""
+        if self._dividends_cache is None:
+            self._dividends_cache = self.ticker.dividends
+        return self._dividends_cache
 
     def fetch(self) -> ETFData:
         # 核心抓取邏輯：不靜音，保留最原始的報錯資訊供開發參考。
@@ -43,8 +54,8 @@ class Fetcher:
             # 針對台股 (如 0050) 或指數進行手動計算
             # print(f"⚠️ {self.ticker_symbol} 採手動計算實質殖利率...")
             one_year_ago = datetime.now() - timedelta(days=365)
-            divs = self.ticker.dividends
-            
+            divs = self.dividends
+
             if not divs.empty:
                 # 處理時區問題：將 divs 的時區抹除 (Naive) 以便與 datetime.now() 比較
                 if getattr(divs.index, 'tz', None) is not None:
@@ -74,11 +85,34 @@ class Fetcher:
         )
     
 
+    @classmethod
+    def fetch_many(cls, symbols: list, max_workers: int = 8):
+        """併發抓取多檔標的。
+
+        回傳 list[(symbol, result)]，順序與輸入一致；result 為 ETFData，
+        若該檔抓取失敗則為對應的 Exception。呼叫端負責決定如何處理錯誤，
+        維持「單一失敗不中斷全域」的非阻斷式 UX。
+        """
+        if not symbols:
+            return []
+
+        def _one(sym):
+            try:
+                return sym, cls(sym).fetch()
+            except Exception as e:  # noqa: BLE001 — 交由呼叫端分類處理
+                return sym, e
+
+        # I/O 密集（等 yfinance HTTP），用執行緒池把牆鐘時間從「相加」變「取最大」
+        workers = min(max_workers, len(symbols))
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            # executor.map 保證回傳順序與輸入一致
+            return list(pool.map(_one, symbols))
+
     def fetch_dividends(self, limit=10):
         """抓取該標的的歷史配息紀錄"""
-        # yfinance 的 dividends 回傳的是一個 Series，索引為日期
-        divs = self.ticker.dividends
-        
+        # yfinance 的 dividends 回傳的是一個 Series，索引為日期（走共用快取）
+        divs = self.dividends
+
         if divs.empty:
             return []
 

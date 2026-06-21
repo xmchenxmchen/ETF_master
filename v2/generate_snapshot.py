@@ -21,23 +21,23 @@ def fetch_watchlist():
     engine = ETFEngine(watchlist_file=WATCHLIST_FILE)
     tickers = engine.prepare_tickers(["watchlist"])
     results = []
-    for symbol in tickers:
-        try:
-            data = Fetcher(symbol).fetch()
-            results.append({
-                "ticker": data.ticker,
-                "name": data.name,
-                "price": round(data.price, 2),
-                "currency": data.currency,
-                "nav": round(data.nav, 2) if data.nav is not None else None,
-                "pd": round(data.premium_discount, 2) if data.premium_discount is not None else None,
-                "yield": round(data.tr_annual_yield, 2) if data.tr_annual_yield is not None else None,
-                "vol_ratio": round(data.volume_ratio, 2),
-            })
-            print(f"  ok  {symbol}")
-        except Exception as e:
-            results.append({"ticker": symbol, "error": str(e)})
-            print(f"  err {symbol}: {e}")
+    for symbol, outcome in Fetcher.fetch_many(tickers):
+        if isinstance(outcome, Exception):
+            results.append({"ticker": symbol, "error": str(outcome)})
+            print(f"  err {symbol}: {outcome}")
+            continue
+        data = outcome
+        results.append({
+            "ticker": data.ticker,
+            "name": data.name,
+            "price": round(data.price, 2),
+            "currency": data.currency,
+            "nav": round(data.nav, 2) if data.nav is not None else None,
+            "pd": round(data.premium_discount, 2) if data.premium_discount is not None else None,
+            "yield": round(data.tr_annual_yield, 2) if data.tr_annual_yield is not None else None,
+            "vol_ratio": round(data.volume_ratio, 2),
+        })
+        print(f"  ok  {symbol}")
     return results
 
 

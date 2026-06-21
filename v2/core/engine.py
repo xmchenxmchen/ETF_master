@@ -46,78 +46,68 @@ class ETFEngine:
             
         return final_list
 
-    def run_info(self, ticker_symbols: list):
-            results = []
+    def _scan(self, ticker_symbols: list, validator) -> list:
+        """共用收集邏輯：併發抓取所有標的、逐檔驗證，並維持輸入順序。
 
-            for symbol in ticker_symbols:
-                try:
-                    data = Fetcher(symbol).fetch()
-                    # 這裡調用你剛才修改過的「寬鬆版」Validator
-                    DataValidator.validate_for_info(data)
-                    results.append(data)
-
-                    print("-" * 45)
-                    print(f"📊 [ETF 基本面掃描] {data.name}")
-                    print("-" * 45)
-                    print(f"  標的代碼: {data.ticker}")
-                    print(f"  目前市價: {data.price:.2f} {data.currency}")
-                    
-                    # 優化顯示：如果殖利率是 0，顯示 N/A 或 0.00%
-                    y_val = f"{data.tr_annual_yield:.2f}%" if data.tr_annual_yield > 0 else "N/A (無發股紀錄)"
-                    print(f"  過去一年殖利率: {y_val}")
-                    
-                    print(f"  更新時間: {data.last_updated}")
-                    print("-" * 45 + "\n")
-                except Exception as e:
-                    print(f"❌ 標的 [{symbol}] 分析失敗: {e}")
-            
-            # --- 迴圈結束後才執行儲存與返回 ---
-            if not results:
-                return
-
-            from core.storage import HistoryManager
-            HistoryManager.save_record(results, "info")
-    
-    def run_pd(self, ticker_symbols: list):
+        - 抓取階段交給 Fetcher.fetch_many() 併發處理（I/O 密集）。
+        - 驗證階段在主執行緒序列執行，確保錯誤輸出順序穩定、可預測。
+        - 採非阻斷式 UX：單一標的失敗只印錯誤標記，不影響其他標的。
+        回傳通過驗證的 ETFData 清單。
+        """
         results = []
-        # 第一階段：獲取資料
-        for symbol in ticker_symbols:
+        for symbol, outcome in Fetcher.fetch_many(ticker_symbols):
+            if isinstance(outcome, Exception):
+                print(f"❌ 標的 [{symbol}] 分析失敗: {outcome}")
+                continue
             try:
-                data = Fetcher(symbol).fetch()
-                DataValidator.validate_for_pd(data)
-                results.append(data)
+                validator(outcome)
+                results.append(outcome)
             except Exception as e:
                 print(f"❌ 標的 [{symbol}] 分析失敗: {e}")
+        return results
+
+    def run_info(self, ticker_symbols: list):
+        results = self._scan(ticker_symbols, DataValidator.validate_for_info)
+
+        for data in results:
+            print("-" * 45)
+            print(f"📊 [ETF 基本面掃描] {data.name}")
+            print("-" * 45)
+            print(f"  標的代碼: {data.ticker}")
+            print(f"  目前市價: {data.price:.2f} {data.currency}")
+
+            # 優化顯示：如果殖利率是 0，顯示 N/A 或 0.00%
+            y_val = f"{data.tr_annual_yield:.2f}%" if data.tr_annual_yield > 0 else "N/A (無發股紀錄)"
+            print(f"  過去一年殖利率: {y_val}")
+
+            print(f"  更新時間: {data.last_updated}")
+            print("-" * 45 + "\n")
 
         if not results:
             return
-        
-        from core.storage import HistoryManager
+        HistoryManager.save_record(results, "info")
+
+    def run_pd(self, ticker_symbols: list):
+        results = self._scan(ticker_symbols, DataValidator.validate_for_pd)
+        if not results:
+            return
+
         HistoryManager.save_record(results, "pd")
-        
-        # 第二階段：交給渲染器決定怎麼畫圖
+
+        # 交給渲染器決定怎麼畫圖
         if len(results) == 1:
             ETFRenderer.render_single_pd(results[0])
         else:
             ETFRenderer.render_comparison_pd(results)
 
-# core/engine.py 修改後的 run_vol
     def run_vol(self, ticker_symbols: list):
-        results = []
-        # 第一階段：收集資料
-        for symbol in ticker_symbols:
-            try:
-                data = Fetcher(symbol).fetch()
-                DataValidator.validate_for_vol(data)
-                results.append(data)
-            except Exception as e:
-                print(f"❌ 標的 [{symbol}] 分析失敗: {e}")
+        results = self._scan(ticker_symbols, DataValidator.validate_for_vol)
         if not results:
             return
-        from core.storage import HistoryManager
+
         HistoryManager.save_record(results, "vol")
 
-        # 第二階段：分流給渲染器
+        # 分流給渲染器
         if len(results) == 1:
             ETFRenderer.render_single_vol(results[0])
         else:
