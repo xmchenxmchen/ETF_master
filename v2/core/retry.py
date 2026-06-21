@@ -15,6 +15,8 @@
 import random
 import time
 
+from core import config
+
 
 class FetchError(Exception):
     """抓取層錯誤的基底類別。"""
@@ -73,7 +75,8 @@ def is_transient(exc: Exception) -> bool:
     return any(marker in msg for marker in _TRANSIENT_MARKERS)
 
 
-def call_with_retry(fn, *, max_retries: int = 2, base_delay: float = 0.5,
+def call_with_retry(fn, *, max_retries: int = config.DEFAULT_MAX_RETRIES,
+                    base_delay: float = config.RETRY_BASE_DELAY,
                     sleep=time.sleep, rng: random.Random = random):
     """執行 fn()，遇到暫時性錯誤時以指數退避 + 抖動重試。
 

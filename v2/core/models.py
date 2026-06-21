@@ -31,13 +31,13 @@ class ETFData:
     last_updated: Optional[str] = None # 👈 統一使用 Optional
 
     @property
-    def premium_discount(self) -> float:
-        """計算折溢價率 (%)"""
+    def premium_discount(self) -> Optional[float]:
+        """計算折溢價率 (%)；無淨值時回 None。"""
         if self.price and self.nav and self.nav > 0:
             return ((self.price - self.nav) / self.nav) * 100
         return None
 
-    @property 
+    @property
     def volume_ratio(self) -> float:
         """計算成交量動能倍率，確保永遠回傳 float 避免渲染出錯"""
         if self.latest_volume and self.avg_volume_10d and self.avg_volume_10d > 0:

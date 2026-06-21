@@ -9,6 +9,7 @@ from flask import Flask, jsonify, render_template, request
 from core.fetcher import Fetcher
 from core.storage import HistoryManager
 from core.engine import ETFEngine
+from core import config
 
 app = Flask(__name__)
 
@@ -16,7 +17,7 @@ WATCHLIST_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "watch
 
 # Watchlist 即時資料的記憶體快取：避免每次重整都同步硬抓 yfinance（10–20 秒）。
 # 在 TTL 內重複請求直接回傳上次結果；?refresh=1 可強制重抓。
-WATCHLIST_CACHE_TTL = 300  # 秒
+WATCHLIST_CACHE_TTL = config.WATCHLIST_CACHE_TTL  # 秒
 _watchlist_cache = {"data": None, "ts": 0.0}
 _cache_lock = threading.Lock()
 
@@ -85,4 +86,5 @@ def api_history(ticker):
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5001)
+    # debug 預設關閉（見 config.WEB_DEBUG），需要時設環境變數 ETF_WEB_DEBUG=1
+    app.run(debug=config.WEB_DEBUG, port=config.WEB_PORT)

@@ -2,11 +2,13 @@ import json
 import os
 from datetime import datetime
 
+from core import config
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 class HistoryManager:
     FILE_PATH = os.path.join(BASE_DIR, "data", "history.json")
-    MAX_RECORDS_PER_TICKER = 20  # 限制每檔標的只留最近 20 筆
+    MAX_RECORDS_PER_TICKER = config.MAX_RECORDS_PER_TICKER  # 每檔標的保留的最大筆數
 
     @classmethod
     def save_record(cls, data_list: list, cmd_type: str):
@@ -24,10 +26,12 @@ class HistoryManager:
                 "timestamp": now,
                 "type": cmd_type,
                 "price": data.price,
-                # 不管現在是什麼指令，只要 data 裡有值就存下來
+                # 每個欄位語意單一：yield 永遠是殖利率、div_amount 永遠是配息金額，
+                # 不再用同一個 key 在不同指令下表達兩種意思。
                 "pd_rate": getattr(data, 'premium_discount', None),
                 "vol_ratio": getattr(data, 'volume_ratio', None),
-                "yield": getattr(data, 'last_div_amount', None) if cmd_type == "div" else getattr(data, 'tr_annual_yield', None)
+                "yield": getattr(data, 'tr_annual_yield', None),
+                "div_amount": getattr(data, 'last_div_amount', None),
             }
             
             if ticker not in history:

@@ -26,7 +26,10 @@ class ETFRenderer:
                 detail = f"量能比: {val:>7.2f}x" if val is not None else "量能比:    N/A"
             elif t == "div":
                 # 專為 div 類型顯示配息金額，使用 4 位小數
-                val = r.get('yield')
+                # 向下相容：新版存於 div_amount，舊紀錄則仍在 yield 欄位
+                val = r.get('div_amount')
+                if val is None:
+                    val = r.get('yield')
                 detail = f"末次配息: {val:>7.4f}" if val is not None else "末次配息:    N/A"
             elif t == "info":
                 val = r.get('yield')

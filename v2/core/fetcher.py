@@ -3,6 +3,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 from core.models import ETFData
 from core.retry import TickerNotFoundError, call_with_retry
+from core import config
 
 class Fetcher:
     def __init__(self, ticker_symbol: str):
@@ -22,7 +23,7 @@ class Fetcher:
     def fetch(self) -> ETFData:
         # 核心抓取邏輯：不靜音，保留最原始的報錯資訊供開發參考。
         # 1. 抓取原始資料 (若代碼錯誤，這裡會直接噴出 yfinance 的 404 訊息)
-        hist = self.ticker.history(period="1mo")
+        hist = self.ticker.history(period=config.HISTORY_PERIOD)
         info = self.ticker.info or {}
         # 2. 核心存在性判定：優先從歷史資料拿價格
         # hist_price 是最穩定的數據源
@@ -42,9 +43,9 @@ class Fetcher:
         info_vol = float(info.get('regularMarketVolume') or info.get('volume') or 0.0)
         latest_vol = max(hist_vol, info_vol)
         
-        # 計算前 10 個交易日的平均 (不含今日最後一筆)
+        # 計算前 N 個交易日的平均 (不含今日最後一筆)
         if len(hist) > 1:
-            avg_vol_10d = float(hist['Volume'].iloc[:-1].tail(10).mean())
+            avg_vol_10d = float(hist['Volume'].iloc[:-1].tail(config.AVG_VOLUME_WINDOW).mean())
         else:
             avg_vol_10d = latest_vol if latest_vol > 0 else 1.0 # 避免除以 0    
         
@@ -56,7 +57,7 @@ class Fetcher:
         else:
             # 針對台股 (如 0050) 或指數進行手動計算
             # print(f"⚠️ {self.ticker_symbol} 採手動計算實質殖利率...")
-            one_year_ago = datetime.now() - timedelta(days=365)
+            one_year_ago = datetime.now() - timedelta(days=config.SMART_YIELD_LOOKBACK_DAYS)
             divs = self.dividends
 
             if not divs.empty:
@@ -89,7 +90,8 @@ class Fetcher:
     
 
     @classmethod
-    def fetch_many(cls, symbols: list, max_workers: int = 6, max_retries: int = 2):
+    def fetch_many(cls, symbols: list, max_workers: int = config.DEFAULT_MAX_WORKERS,
+                   max_retries: int = config.DEFAULT_MAX_RETRIES):
         """併發抓取多檔標的。
 
         回傳 list[(symbol, result)]，順序與輸入一致；result 為 ETFData，
