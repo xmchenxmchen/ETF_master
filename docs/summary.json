@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-15 04:26 UTC",
+  "generated_at": "2026-07-15 06:37 UTC",
   "total": 10,
   "ok": 10,
   "errors": 0,
@@ -9,10 +9,10 @@
   },
   "top_premium": {
     "ticker": "0056.TW",
-    "pd": 1.34
+    "pd": 1.63
   },
   "top_vol": {
     "ticker": "2337.TW",
-    "vol_ratio": 1.57
+    "vol_ratio": 1.81
   }
 }
