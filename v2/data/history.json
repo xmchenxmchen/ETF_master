@@ -1,6 +1,15 @@
 {
     "0050.TW": [
         {
+            "timestamp": "2026-09-13 06:35",
+            "type": "pd",
+            "price": 107.7,
+            "pd_rate": 0.19536701088474087,
+            "vol_ratio": 1.5598328502424255,
+            "yield": 1.4856081708449396,
+            "div_amount": null
+        },
+        {
             "timestamp": "2026-09-12 06:13",
             "type": "pd",
             "price": 107.7,
@@ -170,15 +179,6 @@
             "vol_ratio": 0.3730811629259279,
             "yield": 1.520190023752969,
             "div_amount": null
-        },
-        {
-            "timestamp": "2026-08-25 05:05",
-            "type": "pd",
-            "price": 103.75,
-            "pd_rate": 0.1254584057131784,
-            "vol_ratio": 0.880117577047209,
-            "yield": 1.5421686746987953,
-            "div_amount": null
         }
     ],
     "VOO": [
@@ -224,6 +224,15 @@
         }
     ],
     "0056.TW": [
+        {
+            "timestamp": "2026-09-13 06:35",
+            "type": "pd",
+            "price": 55.3,
+            "pd_rate": -0.30647196682891964,
+            "vol_ratio": 0.9753135749973487,
+            "yield": 7.381555153707055,
+            "div_amount": null
+        },
         {
             "timestamp": "2026-09-12 06:13",
             "type": "pd",
@@ -394,15 +403,6 @@
             "vol_ratio": 0.40848509485159873,
             "yield": 7.701886792452832,
             "div_amount": null
-        },
-        {
-            "timestamp": "2026-08-25 05:05",
-            "type": "pd",
-            "price": 52.3,
-            "pd_rate": -0.5325218714340075,
-            "vol_ratio": 0.5187948795600279,
-            "yield": 7.804971319311665,
-            "div_amount": null
         }
     ],
     "009816.TW": [
@@ -568,6 +568,15 @@
         }
     ],
     "00991A.TW": [
+        {
+            "timestamp": "2026-09-13 06:35",
+            "type": "pd",
+            "price": 17.36,
+            "pd_rate": -0.1725129384703918,
+            "vol_ratio": 0.7720371287153358,
+            "yield": 0.0,
+            "div_amount": null
+        },
         {
             "timestamp": "2026-09-12 06:13",
             "type": "pd",
@@ -738,18 +747,18 @@
             "vol_ratio": 0.2849558664224549,
             "yield": 0.0,
             "div_amount": null
-        },
-        {
-            "timestamp": "2026-08-25 05:05",
-            "type": "pd",
-            "price": 17.46,
-            "pd_rate": -0.8517887563884077,
-            "vol_ratio": 0.7124615631676733,
-            "yield": 0.0,
-            "div_amount": null
         }
     ],
     "00878.TW": [
+        {
+            "timestamp": "2026-09-13 06:35",
+            "type": "pd",
+            "price": 34.0,
+            "pd_rate": -0.38089657193086013,
+            "vol_ratio": 0.9006747743449001,
+            "yield": 0.0,
+            "div_amount": null
+        },
         {
             "timestamp": "2026-09-12 06:13",
             "type": "pd",
@@ -920,18 +929,18 @@
             "vol_ratio": 0.17395634989112216,
             "yield": 0.0,
             "div_amount": null
-        },
-        {
-            "timestamp": "2026-08-25 05:05",
-            "type": "pd",
-            "price": 32.54,
-            "pd_rate": 0.4631058968817492,
-            "vol_ratio": 0.3526088595757455,
-            "yield": 0.0,
-            "div_amount": null
         }
     ],
     "009805.TW": [
+        {
+            "timestamp": "2026-09-13 06:35",
+            "type": "pd",
+            "price": 14.92,
+            "pd_rate": 0.403768506056531,
+            "vol_ratio": 0.5130225429496593,
+            "yield": 0.0,
+            "div_amount": null
+        },
         {
             "timestamp": "2026-09-12 06:13",
             "type": "pd",
@@ -1102,18 +1111,18 @@
             "vol_ratio": 0.7477627409036708,
             "yield": 0.0,
             "div_amount": null
-        },
-        {
-            "timestamp": "2026-08-25 05:05",
-            "type": "pd",
-            "price": 15.23,
-            "pd_rate": -0.13114754098360376,
-            "vol_ratio": 0.5562684180038385,
-            "yield": 0.0,
-            "div_amount": null
         }
     ],
     "00885.TW": [
+        {
+            "timestamp": "2026-09-13 06:35",
+            "type": "pd",
+            "price": 18.45,
+            "pd_rate": 0.3808487486398275,
+            "vol_ratio": 0.9430377850181139,
+            "yield": 0.0,
+            "div_amount": null
+        },
         {
             "timestamp": "2026-09-12 06:13",
             "type": "pd",
@@ -1284,18 +1293,18 @@
             "vol_ratio": 0.4090915779067347,
             "yield": 0.0,
             "div_amount": null
-        },
-        {
-            "timestamp": "2026-08-24 05:11",
-            "type": "pd",
-            "price": 18.24,
-            "pd_rate": 0.16474464579899825,
-            "vol_ratio": 2.1573204493487284,
-            "yield": 0.0,
-            "div_amount": null
         }
     ],
     "00910.TW": [
+        {
+            "timestamp": "2026-09-13 06:35",
+            "type": "pd",
+            "price": 55.4,
+            "pd_rate": -0.43134435657800496,
+            "vol_ratio": 0.7594692662770486,
+            "yield": 0.0,
+            "div_amount": null
+        },
         {
             "timestamp": "2026-09-12 06:13",
             "type": "pd",
@@ -1466,18 +1475,18 @@
             "vol_ratio": 0.2843374108488739,
             "yield": 0.0,
             "div_amount": null
-        },
-        {
-            "timestamp": "2026-08-25 05:05",
-            "type": "pd",
-            "price": 58.45,
-            "pd_rate": -2.777777777777769,
-            "vol_ratio": 0.9438409306710301,
-            "yield": 0.0,
-            "div_amount": null
         }
     ],
     "00929.TW": [
+        {
+            "timestamp": "2026-09-13 06:35",
+            "type": "pd",
+            "price": 28.62,
+            "pd_rate": 0.24518388791593795,
+            "vol_ratio": 1.7568326753001064,
+            "yield": 0.0,
+            "div_amount": null
+        },
         {
             "timestamp": "2026-09-12 06:13",
             "type": "pd",
@@ -1648,18 +1657,18 @@
             "vol_ratio": 0.2674351500967706,
             "yield": 0.0,
             "div_amount": null
-        },
-        {
-            "timestamp": "2026-08-25 05:05",
-            "type": "pd",
-            "price": 28.43,
-            "pd_rate": 0.3884180790960432,
-            "vol_ratio": 0.7768024434586013,
-            "yield": 0.0,
-            "div_amount": null
         }
     ],
     "00934.TW": [
+        {
+            "timestamp": "2026-09-13 06:35",
+            "type": "pd",
+            "price": 29.9,
+            "pd_rate": 0.0334560053529542,
+            "vol_ratio": 1.1618165181303912,
+            "yield": 0.0,
+            "div_amount": null
+        },
         {
             "timestamp": "2026-09-12 06:13",
             "type": "pd",
@@ -1828,15 +1837,6 @@
             "price": 29.24,
             "pd_rate": 1.9525801952580153,
             "vol_ratio": 1.1578569832704442,
-            "yield": 0.0,
-            "div_amount": null
-        },
-        {
-            "timestamp": "2026-08-25 05:05",
-            "type": "pd",
-            "price": 28.51,
-            "pd_rate": -0.5927475592747495,
-            "vol_ratio": 0.7718225070829271,
             "yield": 0.0,
             "div_amount": null
         }
