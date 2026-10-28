@@ -1,18 +1,18 @@
 {
-  "generated_at": "2026-10-27 06:37 UTC",
+  "generated_at": "2026-10-28 07:09 UTC",
   "total": 10,
   "ok": 10,
   "errors": 0,
   "top_discount": {
-    "ticker": "009805.TW",
-    "pd": -2.62
+    "ticker": "00885.TW",
+    "pd": -1.64
   },
   "top_premium": {
-    "ticker": "00934.TW",
-    "pd": 1.16
+    "ticker": "00910.TW",
+    "pd": 3.89
   },
   "top_vol": {
-    "ticker": "00910.TW",
-    "vol_ratio": 2.27
+    "ticker": "2337.TW",
+    "vol_ratio": 2.89
   }
 }
